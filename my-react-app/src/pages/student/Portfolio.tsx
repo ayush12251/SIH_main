@@ -26,8 +26,13 @@ import {
   type Project,
   type TechStackCategory,
   type DocumentItem,
+  mockCredentials,
+  mockAchievements,
+  mockProjects,
+  mockTechStack,
+  mockDocuments,
 } from '../../services/portfolio.mock';
-import { apiRequest } from '../../services/api';
+// import { apiRequest } from '../../services/api';
 
 const IconMap = {
   cloud: <Cloud size={20} className="text-gray-500" />,
@@ -50,26 +55,27 @@ const badgeStyles = {
 
 const Portfolio = () => {
   const { profile } = useStudent();
-  const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [achievements, setAchievements] = useState<Credential[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [techStack, setTechStack] = useState<TechStackCategory[]>([]);
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [credentials] = useState<Credential[]>(mockCredentials);
+  const [achievements] = useState<Credential[]>(mockAchievements);
+  const [projects] = useState<Project[]>(mockProjects);
+  const [techStack] = useState<TechStackCategory[]>(mockTechStack);
+  const [documents] = useState<DocumentItem[]>(mockDocuments);
 
   useEffect(() => {
-    apiRequest<{
-      credentials: Credential[];
-      achievements: Credential[];
-      projects: Project[];
-      techStack: TechStackCategory[];
-      documents: DocumentItem[];
-    }>('/student/portfolio').then(data => {
-      setCredentials(data.credentials);
-      setAchievements(data.achievements);
-      setProjects(data.projects);
-      setTechStack(data.techStack);
-      setDocuments(data.documents);
-    }).catch(() => undefined);
+    // When backend is ready, uncomment the API request:
+    // apiRequest<{
+    //   credentials: Credential[];
+    //   achievements: Credential[];
+    //   projects: Project[];
+    //   techStack: TechStackCategory[];
+    //   documents: DocumentItem[];
+    // }>('/student/portfolio').then(data => {
+    //   setCredentials(data.credentials);
+    //   setAchievements(data.achievements);
+    //   setProjects(data.projects);
+    //   setTechStack(data.techStack);
+    //   setDocuments(data.documents);
+    // }).catch(() => undefined);
   }, []);
 
   return (
@@ -81,7 +87,7 @@ const Portfolio = () => {
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
           <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden shrink-0 border-4 border-white shadow-sm bg-gray-200">
-            <img src={profile?.avatarUrl || 'https://i.pravatar.cc/150?u=default'} alt={profile?.name} className="w-full h-full object-cover" />
+            <img src={profile?.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'} alt={profile?.name} className="w-full h-full object-cover" />
           </div>
           
           <div className="flex-1 pt-2 w-full">
