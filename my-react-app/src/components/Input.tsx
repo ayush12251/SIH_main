@@ -27,7 +27,7 @@ export const Input: React.FC<InputProps> = ({
       <input
         id={inputId}
         className={`w-full px-4 py-3.5 bg-gray-100 border-none rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-shadow ${
-          error ? 'ring-2 ring-red-500 focus:ring-red-500' : ''
+          error ? 'ring-2 ring-red-500' : ''
         }`}
         {...props}
       />

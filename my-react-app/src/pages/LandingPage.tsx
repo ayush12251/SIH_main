@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, 
   GraduationCap, 
@@ -6,10 +7,12 @@ import {
   Landmark,
   Activity
 } from 'lucide-react';
-import { Button } from '../../components/Button';
-import { Card } from '../../components/Card';
+import { Button } from '../components/Button';
+import { Card } from '../components/Card';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="font-sans text-neutral-900 overflow-x-hidden min-h-screen flex flex-col">
       {/* Navbar */}
@@ -35,7 +38,7 @@ const LandingPage = () => {
             Internix is the high-density data layer connecting ambitious students, precise industry demands, forward-thinking faculty, and rigorous institutional analytics.
           </p>
           <div className="flex flex-wrap gap-4">
-            <Button variant="primary">
+            <Button variant="primary" onClick={() => navigate('/choose-path')}>
               Get Started <ArrowRight size={18} />
             </Button>
             <Button variant="secondary">
