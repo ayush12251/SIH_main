@@ -48,8 +48,7 @@ const Login = () => {
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      const role = email.toLowerCase().includes('industry') || email.toLowerCase().includes('recruiter') ? 'industry' : 'student';
-      await login(email, role);
+      await login(email, password);
       showToast('success', 'Welcome back!', 'You have been logged in successfully.');
     } catch {
       showToast('error', 'Login failed', 'Invalid credentials. Please try again.');

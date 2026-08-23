@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiRequest, clearAccessToken, getAccessToken, setAccessToken } from '../services/api';
 
 export type UserRole = 'student' | 'industry' | 'faculty' | 'admin';
 
@@ -13,8 +14,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, role: UserRole) => Promise<void>;
-  register: (email: string, role: UserRole) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => void;
 }
 
@@ -25,57 +26,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session in localStorage on mount
-    const storedUser = localStorage.getItem('internix_user');
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user from local storage');
-      }
+    const token = getAccessToken();
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+
+    apiRequest<User>('/auth/me')
+      .then(setUser)
+      .catch(() => {
+        clearAccessToken();
+        setUser(null);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (email: string, role: UserRole) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Mock user object
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: email.split('@')[0], // Generate dummy name from email
-      email,
-      role,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('internix_user', JSON.stringify(mockUser));
-    setIsLoading(false);
+    try {
+      const response = await apiRequest<{ user: User; access_token: string }>('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      setAccessToken(response.access_token);
+      setUser(response.user);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const register = async (email: string, role: UserRole) => {
+  const register = async (name: string, email: string, password: string, role: UserRole) => {
     setIsLoading(true);
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // Mock user object (registration logs them in directly here)
-    const mockUser: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: email.split('@')[0],
-      email,
-      role,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('internix_user', JSON.stringify(mockUser));
-    setIsLoading(false);
+    try {
+      const response = await apiRequest<{ user: User; access_token: string }>('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role }),
+      });
+      setAccessToken(response.access_token);
+      setUser(response.user);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('internix_user');
+    clearAccessToken();
   };
 
   return (

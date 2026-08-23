@@ -1,15 +1,13 @@
+import { useEffect, useState } from 'react';
 import { Download, ClipboardList, Play, CheckCircle2, Clock } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
+import { Link } from 'react-router-dom';
 import {
-  mockSkillScoreCards,
-  mockRadarAxes,
-  mockSkillInventory,
-  mockDailyChallenges,
-  mockAtsMatch,
-  mockAssessmentHistory,
   type RadarAxis,
   type SkillScoreCard,
+  type AssessmentHistoryItem,
 } from '../../services/skillAssessment.mock';
+import { apiRequest } from '../../services/api';
 
 // ─── Circular Score Ring ───────────────────────────────────────────────────────
 const colorMap = {
@@ -129,7 +127,22 @@ const badgeStyles = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 const SkillAssessment = () => {
-  const ats = mockAtsMatch;
+  const [assessment, setAssessment] = useState<{
+    scoreCards: Array<{ id: string; label: string; subLabel: string; score: number }>;
+    radarAxes: RadarAxis[];
+    skillInventory: Array<{ id: string; skill: string; subSkill?: string; proficiency: number; level: string; lastTested: string | null; highlighted: boolean }>;
+    dailyChallenges: Array<{ id: string; tag: string; title: string; description: string }>;
+    atsMatch: { score: number; max: number; label: string; description: string };
+  } | null>(null);
+
+  useEffect(() => {
+    apiRequest<typeof assessment extends null ? never : NonNullable<typeof assessment>>('/student/skills/assessment')
+      .then(data => setAssessment(data))
+      .catch(() => setAssessment({ scoreCards: [], radarAxes: [], skillInventory: [], dailyChallenges: [], atsMatch: { score: 0, max: 100, label: 'Not assessed', description: 'Upload a resume to generate your baseline.' } }));
+  }, []);
+
+  if (!assessment) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" /></div>;
+  const ats = assessment.atsMatch;
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -145,17 +158,17 @@ const SkillAssessment = () => {
               Assess your Data Science competencies, discover strengths, and identify critical gaps.
             </p>
           </div>
-          <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 border border-gray-200 bg-white rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors">
+          <Link to="/student/feature-status?feature=Export%20Transcript" className="flex items-center gap-2 text-sm font-semibold text-gray-700 border border-gray-200 bg-white rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors">
             <Download size={14} />
             Export Transcript
-          </button>
+          </Link>
         </div>
 
         {/* Score Cards */}
         <div className="grid grid-cols-3 gap-4">
-          {mockSkillScoreCards.map((card) => (
-            <div key={card.id} className={`bg-white rounded-2xl border ${colorMap[card.color].border} shadow-sm px-5 py-4 flex items-center gap-4`}>
-              <ScoreRing score={card.score} color={card.color} />
+          {assessment.scoreCards.map((card, index) => (
+            <div key={card.id} className={`bg-white rounded-2xl border ${colorMap[['indigo', 'green', 'amber'][index % 3] as SkillScoreCard['color']].border} shadow-sm px-5 py-4 flex items-center gap-4`}>
+              <ScoreRing score={card.score} color={['indigo', 'green', 'amber'][index % 3] as SkillScoreCard['color']} />
               <div>
                 <p className="font-bold text-gray-900 text-sm">{card.label}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{card.subLabel}</p>
@@ -175,9 +188,9 @@ const SkillAssessment = () => {
               Take a comprehensive 15-minute evaluation to update your data science skill matrix.
             </p>
           </div>
-          <button className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shrink-0">
+          <a href="/student/questionnaire" className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shrink-0">
             Start Skill Questionnaire
-          </button>
+          </a>
         </div>
 
         {/* Skill Matrix + Skill Inventory */}
@@ -191,13 +204,13 @@ const SkillAssessment = () => {
               <h2 className="font-bold text-gray-900 text-sm">Data Science Skill Matrix</h2>
             </div>
             <div className="flex-1 flex items-center justify-center min-h-65">
-              <RadarChart axes={mockRadarAxes} />
+              <RadarChart axes={assessment.radarAxes} />
             </div>
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
               <span className="text-xs text-gray-400">Last updated: 2 days ago</span>
-              <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+              <Link to="/student/feature-status?feature=Matrix%20Details" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800">
                 View Matrix Details
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -217,7 +230,7 @@ const SkillAssessment = () => {
             </div>
             {/* Rows */}
             <div className="flex flex-col gap-0.5 flex-1">
-              {mockSkillInventory.map((row) => (
+              {assessment.skillInventory.map((row) => (
                 <div
                   key={row.id}
                   className={`grid grid-cols-3 items-center px-2 py-2.5 rounded-lg ${row.highlighted ? 'bg-amber-50' : 'hover:bg-gray-50'}`}
@@ -235,9 +248,9 @@ const SkillAssessment = () => {
               ))}
             </div>
             <div className="pt-3 border-t border-gray-100 mt-3">
-              <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 float-right">
+              <Link to="/student/feature-status?feature=Full%20Skill%20Inventory" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 float-right">
                 View Full Inventory
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -256,15 +269,15 @@ const SkillAssessment = () => {
               <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Practice Center</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {mockDailyChallenges.map((ch) => (
+              {assessment.dailyChallenges.map((ch) => (
                 <div key={ch.id} className="border border-gray-100 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                       {ch.tag}
                     </span>
-                    <button className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-colors">
+                    <Link to={`/student/feature-status?feature=${encodeURIComponent(`${ch.title} Challenge`)}`} className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center hover:bg-indigo-200 transition-colors">
                       <Play size={12} className="text-indigo-600 ml-0.5" />
-                    </button>
+                    </Link>
                   </div>
                   <p className="text-sm font-bold text-gray-900">{ch.title}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{ch.description}</p>
@@ -286,9 +299,9 @@ const SkillAssessment = () => {
               <div>
                 <p className="font-bold text-gray-900 text-base">{ats.label}</p>
                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">{ats.description}</p>
-                <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 mt-2">
+                <Link to="/student/feature-status?feature=ATS%20Review%20Suggestions" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 mt-2">
                   Review Suggestions
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -304,10 +317,10 @@ const SkillAssessment = () => {
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            {mockAssessmentHistory.map((item, idx) => (
+            {([] as AssessmentHistoryItem[]).map((item, idx) => (
               <div key={item.id} className="relative flex flex-col gap-3">
                 {/* Timeline connector */}
-                {idx < mockAssessmentHistory.length - 1 && (
+                {idx < 0 && (
                   <div className="absolute top-3 left-full w-full h-px bg-gray-200 -translate-y-px z-0" />
                 )}
                 <div className="flex items-center gap-2 relative z-10">

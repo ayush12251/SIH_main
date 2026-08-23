@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { 
   SlidersHorizontal, 
   TrendingUp, 
@@ -16,15 +17,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
-import {
-  mockPageHeader,
-  mockImpactPath,
-  mockMarketTrends,
-  mockSkillGaps,
-  mockIndustries,
-  mockLearningModules,
-  mockCertifications,
-} from '../../services/skillMapping.mock';
+import { apiRequest } from '../../services/api';
 
 const IconMap = {
   database: <Database size={20} className="text-indigo-500" />,
@@ -36,6 +29,24 @@ const IconMap = {
 };
 
 const SkillMapping = () => {
+  const [guidance, setGuidance] = useState<{
+    pageHeader: { targetRole: string; currentMatch: number };
+    impactPath: { title: string; description: string; currentScore: number; projectedScore: number };
+    marketTrends: Array<{ id: string; skill: string; percentage: number; isGap: boolean }>;
+    skillGaps: Array<{ id: string; skill: string; requiredBy: string; description: string; icon: string }>;
+    industries: Array<{ id: string; name: string; description: string; icon: string; iconColor: string; iconBg: string }>;
+    learningModules: Array<{ id: string; title: string; statusText: string; status: 'completed' | 'in-progress' | 'locked'; progress?: number }>;
+    certifications: Array<{ id: string; title: string; description: string; icon: string }>;
+  } | null>(null);
+
+  useEffect(() => {
+    apiRequest<typeof guidance extends null ? never : NonNullable<typeof guidance>>('/student/career-guidance')
+      .then(data => setGuidance(data))
+      .catch(() => setGuidance({ pageHeader: { targetRole: 'Your target role', currentMatch: 0 }, impactPath: { title: 'Upload a resume to begin', description: 'Your personalized path will appear here.', currentScore: 0, projectedScore: 0 }, marketTrends: [], skillGaps: [], industries: [], learningModules: [], certifications: [] }));
+  }, []);
+
+  if (!guidance) return <div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" /></div>;
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-16">
       <Navbar />
@@ -45,9 +56,9 @@ const SkillMapping = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{mockPageHeader.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Personalized Career Guidance</h1>
             <p className="text-sm text-gray-600 font-medium">
-              Target Role: <strong className="text-gray-900">{mockPageHeader.targetRole}</strong> • Current Match: {mockPageHeader.currentMatch}%
+              Target Role: <strong className="text-gray-900">{guidance.pageHeader.targetRole}</strong> • Current Match: {guidance.pageHeader.currentMatch}%
             </p>
           </div>
           <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-full px-5 py-2 hover:bg-gray-50 transition-colors">
@@ -66,17 +77,17 @@ const SkillMapping = () => {
             </div>
             
             <h2 className="text-3xl font-bold text-gray-900 leading-tight mb-4 max-w-lg">
-              {mockImpactPath.title}
+              {guidance.impactPath.title}
             </h2>
             
             <p className="text-gray-600 text-sm mb-12 max-w-md leading-relaxed">
-              {mockImpactPath.description}
+              {guidance.impactPath.description}
             </p>
 
             <div className="flex items-end gap-12">
               <div>
                 <p className="text-xs font-bold text-gray-500 mb-1">Current Match Score</p>
-                <p className="text-4xl font-extrabold text-gray-900">{mockImpactPath.currentScore}%</p>
+                <p className="text-4xl font-extrabold text-gray-900">{guidance.impactPath.currentScore}%</p>
               </div>
               
               <div className="pb-3 text-indigo-300">
@@ -86,7 +97,7 @@ const SkillMapping = () => {
               <div>
                 <p className="text-xs font-bold text-gray-500 mb-1">Projected Match Score</p>
                 <div className="flex items-center gap-2">
-                  <p className="text-4xl font-extrabold text-emerald-500">{mockImpactPath.projectedScore}%</p>
+                  <p className="text-4xl font-extrabold text-emerald-500">{guidance.impactPath.projectedScore}%</p>
                   <Rocket size={20} className="text-emerald-500" />
                 </div>
               </div>
@@ -106,7 +117,7 @@ const SkillMapping = () => {
             </p>
 
             <div className="flex flex-col gap-5 flex-1">
-              {mockMarketTrends.map((trend) => (
+              {guidance.marketTrends.map((trend) => (
                 <div key={trend.id}>
                   <div className="flex justify-between items-end mb-2">
                     <span className={`text-xs font-bold ${trend.isGap ? 'text-indigo-600' : 'text-gray-900'}`}>
@@ -139,7 +150,7 @@ const SkillMapping = () => {
               </span>
             </div>
             <div className="flex flex-col gap-4">
-              {mockSkillGaps.map((gap) => (
+              {guidance.skillGaps.map((gap) => (
                 <Card key={gap.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -164,7 +175,7 @@ const SkillMapping = () => {
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-4">Recommended Industries</h2>
             <div className="flex flex-col gap-4">
-              {mockIndustries.map((ind) => (
+              {guidance.industries.map((ind) => (
                 <Card key={ind.id} radius="2xl" shadow="sm" padding="small" className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ind.iconBg}`}>
                     {IconMap[ind.icon as keyof typeof IconMap]}
@@ -189,7 +200,7 @@ const SkillMapping = () => {
           </div>
 
           <div className="flex flex-col gap-3">
-            {mockLearningModules.map((mod) => (
+            {guidance.learningModules.map((mod) => (
               <Card key={mod.id} radius="2xl" shadow="sm" padding="small" className={`flex items-center gap-4 px-6 ${mod.status === 'locked' ? 'bg-gray-50/50' : ''}`}>
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                   mod.status === 'completed' ? 'bg-emerald-100 text-emerald-500' :
@@ -227,7 +238,7 @@ const SkillMapping = () => {
         <div className="mt-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Recommended Certifications</h2>
           <div className="grid grid-cols-2 gap-6">
-            {mockCertifications.map((cert) => (
+            {guidance.certifications.map((cert) => (
               <Card key={cert.id} radius="2xl" shadow="sm" padding="small" className="flex items-center gap-4 px-6">
                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
                   {IconMap[cert.icon as keyof typeof IconMap]}

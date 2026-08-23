@@ -38,6 +38,7 @@ export interface Recommendation {
   icon: string;
   title: string;
   meta: string;
+  linkTo?: string;
 }
 
 export interface ActivityItem {
@@ -51,6 +52,7 @@ export interface MentorItem {
   id: string;
   name: string;
   role: string;
+  linkedinUrl?: string;
 }
 
 export const mockStudentProfile: StudentProfile = {

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { 
   MapPin, 
   Mail, 
@@ -21,12 +22,12 @@ import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
 import { useStudent } from '../../context/StudentContext';
 import {
-  mockCredentials,
-  mockAchievements,
-  mockProjects,
-  mockTechStack,
-  mockDocuments
+  type Credential,
+  type Project,
+  type TechStackCategory,
+  type DocumentItem,
 } from '../../services/portfolio.mock';
+import { apiRequest } from '../../services/api';
 
 const IconMap = {
   cloud: <Cloud size={20} className="text-gray-500" />,
@@ -49,6 +50,27 @@ const badgeStyles = {
 
 const Portfolio = () => {
   const { profile } = useStudent();
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [achievements, setAchievements] = useState<Credential[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [techStack, setTechStack] = useState<TechStackCategory[]>([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+
+  useEffect(() => {
+    apiRequest<{
+      credentials: Credential[];
+      achievements: Credential[];
+      projects: Project[];
+      techStack: TechStackCategory[];
+      documents: DocumentItem[];
+    }>('/student/portfolio').then(data => {
+      setCredentials(data.credentials);
+      setAchievements(data.achievements);
+      setProjects(data.projects);
+      setTechStack(data.techStack);
+      setDocuments(data.documents);
+    }).catch(() => undefined);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -109,7 +131,7 @@ const Portfolio = () => {
                 <h2 className="text-xl font-bold text-gray-900">Verified Credentials</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockCredentials.map((cred) => (
+                {credentials.map((cred) => (
                   <Card key={cred.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col h-full relative">
                     <span className={`absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full ${badgeStyles[cred.badge.color]}`}>
                       {cred.badge.label}
@@ -135,7 +157,7 @@ const Portfolio = () => {
                 <h2 className="text-xl font-bold text-gray-900">Achievements &amp; Awards</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockAchievements.map((ach) => (
+                {achievements.map((ach) => (
                   <Card key={ach.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col h-full relative">
                     <span className={`absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full ${badgeStyles[ach.badge.color]}`}>
                       {ach.badge.label}
@@ -160,7 +182,7 @@ const Portfolio = () => {
                 <h2 className="text-xl font-bold text-gray-900">Key Projects</h2>
               </div>
               <div className="flex flex-col gap-4">
-                {mockProjects.map((proj) => (
+                {projects.map((proj) => (
                   <Card key={proj.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col md:flex-row gap-6 relative">
                     <span className="absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-700 z-10">
                       {proj.badge}
@@ -210,7 +232,7 @@ const Portfolio = () => {
             <Card radius="2xl" shadow="sm" padding="normal" className="flex flex-col gap-6">
               <h2 className="text-base font-bold text-gray-900">Technical Stack</h2>
               
-              {mockTechStack.map((category) => (
+              {techStack.map((category) => (
                 <div key={category.title}>
                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
                     {category.title}
@@ -243,7 +265,7 @@ const Portfolio = () => {
               </div>
 
               <div className="flex flex-col gap-3">
-                {mockDocuments.map((doc) => (
+                {documents.map((doc) => (
                   <div key={doc.id} className="border border-gray-100 rounded-xl p-3 flex items-center gap-3 group hover:border-gray-200 transition-colors">
                     <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center shrink-0">
                       {DocIconMap[doc.icon]}

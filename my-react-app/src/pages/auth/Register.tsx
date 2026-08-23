@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FileUp, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import rocketImg from '../../assets/rocket.png';
 import { Button } from '../../components/Button';
@@ -7,6 +7,7 @@ import { Card } from '../../components/Card';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { apiRequest } from '../../services/api';
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -47,17 +48,19 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const registrationFinished = useRef(false);
   const passwordStrength = getPasswordStrength(password);
 
   useEffect(() => {
-    if (user) {
+    if (user && registrationFinished.current && !isSubmitting) {
       if (user.role === 'student') navigate('/student/dashboard');
       else if (user.role === 'industry') navigate('/recruiter/dashboard');
       else navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, isSubmitting]);
 
   useEffect(() => {
     setMounted(true);
@@ -87,8 +90,16 @@ const Register = () => {
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      await register(email, (role as any) || 'student');
-      showToast('success', 'Account created!', 'Welcome to Internix. Let\'s get started.');
+      await register(isStudent ? fullName : companyName, email, password, isStudent ? 'student' : 'industry');
+      if (isStudent && resumeFile) {
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        await apiRequest('/ai/resume/parse', { method: 'POST', body: formData });
+        showToast('success', 'Profile created!', 'Your resume was parsed successfully.');
+      } else {
+        showToast('success', 'Account created!', 'Welcome to Internix. Let\'s get started.');
+      }
+      registrationFinished.current = true;
     } catch {
       showToast('error', 'Registration failed', 'Something went wrong. Please try again.');
     } finally {
@@ -172,15 +183,23 @@ const Register = () => {
                 </div>
 
                 {/* Upload Box */}
-                <div className="mb-8 border-2 border-dashed border-[#e5e7eb] rounded-3xl bg-[#fcfcfd] hover:bg-gray-50 transition-colors py-8 px-6 flex flex-col items-center justify-center cursor-pointer group">
+                <label className="mb-8 border-2 border-dashed border-[#e5e7eb] rounded-3xl bg-[#fcfcfd] hover:bg-gray-50 transition-colors py-8 px-6 flex flex-col items-center justify-center cursor-pointer group">
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    className="sr-only"
+                    onChange={(event) => setResumeFile(event.target.files?.[0] ?? null)}
+                  />
                   <div className="w-12 h-12 bg-[#f0effd] rounded-full flex items-center justify-center mb-4 group-hover:bg-[#e0defc] transition-colors">
                     <FileUp size={20} className="text-[#4c42e6]" strokeWidth={2.5} />
                   </div>
                   <p className="text-neutral-900 text-[0.9rem] font-bold mb-1.5 text-center">
                     Upload your resume to instantly<br />build your profile
                   </p>
-                  <p className="text-gray-400 text-[0.75rem] font-medium">Supports PDF, DOCX (Max 5MB)</p>
-                </div>
+                  <p className="text-gray-400 text-[0.75rem] font-medium">
+                    {resumeFile ? resumeFile.name : 'Supports PDF (Max 10MB)'}
+                  </p>
+                </label>
 
                 <div className="flex items-center text-center mb-8">
                   <div className="flex-1 border-b border-gray-100"></div>

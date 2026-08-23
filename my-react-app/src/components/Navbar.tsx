@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import { Search, Settings, Activity, Menu, X } from 'lucide-react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { Search, Settings, Activity, Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', to: '/student/dashboard' },
@@ -14,6 +15,13 @@ const navItems = [
 
 export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -58,6 +66,14 @@ export const Navbar = () => {
           <Settings size={14} />
           Settings
         </Link>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-red-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+        >
+          <LogOut size={14} />
+          Logout
+        </button>
       </div>
 
       {/* Mobile Menu Toggle */}
@@ -96,6 +112,14 @@ export const Navbar = () => {
             <Settings size={18} />
             Settings
           </Link>
+          <button
+            type="button"
+            onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+            className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
       )}
     </nav>

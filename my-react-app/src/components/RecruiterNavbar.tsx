@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Search, Activity, Menu, X } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Search, Activity, Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { label: 'Dashboard', to: '/recruiter/dashboard' },
@@ -12,6 +13,13 @@ const navItems = [
 
 export const RecruiterNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -55,6 +63,14 @@ export const RecruiterNavbar = () => {
         <button className="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-gray-50 shadow-sm transition-all">
           Settings
         </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-red-50 hover:text-red-600 shadow-sm transition-all"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
       </div>
 
       {/* Mobile Menu Toggle */}
@@ -87,6 +103,14 @@ export const RecruiterNavbar = () => {
           <div className="h-px bg-gray-100 my-2" />
           <button className="w-full text-left px-4 py-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
             Settings
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsMobileMenuOpen(false); handleLogout(); }}
+            className="w-full flex items-center gap-2 text-left px-4 py-3 rounded-lg text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+          >
+            <LogOut size={18} />
+            Logout
           </button>
         </div>
       )}

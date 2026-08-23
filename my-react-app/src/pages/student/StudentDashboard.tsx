@@ -13,7 +13,6 @@ import {
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
 import { useStudent } from '../../context/StudentContext';
-import { mockActivity } from '../../services/studentDashboard.mock';
 
 // Icon map for journey cards
 const iconMap: Record<string, React.ReactNode> = {
@@ -118,9 +117,9 @@ const StudentDashboard = () => {
             <p className="font-semibold text-gray-900 text-sm">{pendingTask.title}</p>
             <p className="text-xs text-gray-500 mt-0.5">{pendingTask.subtitle}</p>
           </div>
-          <button className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shrink-0">
+          <Link to="/student/settings" className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shrink-0">
             {pendingTask.ctaLabel}
-          </button>
+          </Link>
         </div>
 
         {/* Career Journey */}
@@ -156,7 +155,8 @@ const StudentDashboard = () => {
               <h2 className="text-base font-bold text-gray-900 mb-3">Recommended for You</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {recommendations.map((rec) => (
-                  <Card key={rec.id} radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex items-center gap-4">
+                  <Link key={rec.id} to={rec.linkTo || (rec.id === 'skills' ? '/student/skill-assessment' : '/student/opportunities')} className="block">
+                  <Card radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex items-center gap-4 hover:border-indigo-200 transition-colors">
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
                       {recIconMap[rec.icon]}
                     </div>
@@ -165,6 +165,7 @@ const StudentDashboard = () => {
                       <p className="text-xs text-gray-500 mt-0.5">{rec.meta}</p>
                     </div>
                   </Card>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -181,9 +182,9 @@ const StudentDashboard = () => {
                     <p className="text-sm font-bold text-gray-900">{mentor.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{mentor.role}</p>
                   </div>
-                  <button className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-full px-4 py-1.5 hover:bg-gray-50 transition-colors">
+                  <a href={mentor.linkedinUrl || 'https://www.linkedin.com/search/results/people/?keywords=career%20mentor'} target="_blank" rel="noreferrer" className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-full px-4 py-1.5 hover:bg-gray-50 transition-colors">
                     Connect
-                  </button>
+                  </a>
                 </Card>
               ))}
             </div>
@@ -198,7 +199,7 @@ const StudentDashboard = () => {
                   {/* Timeline dot */}
                   <div className="flex flex-col items-center">
                     <div className={`w-3.5 h-3.5 rounded-full border-2 mt-0.5 shrink-0 ${item.active ? 'border-indigo-600 bg-white' : 'border-gray-300 bg-gray-100'}`} />
-                    {idx < mockActivity.length - 1 && (
+                    {idx < activity.length - 1 && (
                       <div className="w-px flex-1 bg-gray-200 my-1" />
                     )}
                   </div>

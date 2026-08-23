@@ -7,6 +7,8 @@ import Portfolio from '../pages/student/Portfolio';
 import Progress from '../pages/student/Progress';
 import Library from '../pages/student/Library';
 import ProfileSettings from '../pages/student/ProfileSettings';
+import Questionnaire from '../pages/student/Questionnaire';
+import FeatureInProgress from '../pages/student/FeatureInProgress';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { StudentProvider } from '../context/StudentContext';
 
@@ -25,6 +27,8 @@ export default function StudentRoutes() {
           <Route path="progress" element={<Progress />} />
           <Route path="library" element={<Library />} />
           <Route path="settings" element={<ProfileSettings />} />
+          <Route path="questionnaire" element={<Questionnaire />} />
+          <Route path="feature-status" element={<FeatureInProgress />} />
         </Route>
       </Route>
     </Routes>

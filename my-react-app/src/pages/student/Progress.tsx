@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { 
   Cloud, 
   Database,
@@ -16,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
-import { useATS } from '../../context/ATSContext';
+import { apiRequest } from '../../services/api';
 import {
   mockActiveCourses,
   mockPathSteps,
@@ -33,8 +34,19 @@ const IconMap = {
 };
 
 const Progress = () => {
-  const { getApplicationsForStudent } = useATS();
-  const applications = getApplicationsForStudent();
+  const [applications, setApplications] = useState<Array<{ id: string; jobTitle: string; company: string; status: string; appliedAt: string }>>([]);
+
+  useEffect(() => {
+    apiRequest<{ applications: Array<{ id: string; job_title: string; company: string; status: string; applied_at: string }> }>('/student/applications')
+      .then(data => setApplications(data.applications.map(application => ({
+        id: application.id,
+        jobTitle: application.job_title,
+        company: application.company,
+        status: application.status,
+        appliedAt: new Date(application.applied_at).toLocaleDateString(),
+      }))))
+      .catch(() => setApplications([]));
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">

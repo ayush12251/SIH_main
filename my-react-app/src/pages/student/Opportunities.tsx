@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Search, 
   SlidersHorizontal, 
@@ -14,11 +14,9 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
-import { mockOpportunityStats } from '../../services/opportunities.mock';
-import { useJobs } from '../../context/JobsContext';
-import { useATS } from '../../context/ATSContext';
-import { useStudent } from '../../context/StudentContext';
 import { useToast } from '../../context/ToastContext';
+import { apiRequest } from '../../services/api';
+import type { JobOpportunity } from '../../services/opportunities.mock';
 
 const MatchScoreRing = ({ score }: { score: number }) => {
   const r = 20;
@@ -47,18 +45,38 @@ const Opportunities = () => {
   const [locationFilters, setLocationFilters] = useState<string[]>([]);
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set());
 
-  const stats = mockOpportunityStats;
-  const { getJobsForStudent, applyToJob: applyToJobsContext } = useJobs();
-  const { applyToJob, getApplicationsForStudent } = useATS();
-  const { profile } = useStudent();
   const { showToast } = useToast();
-  
-  // In a real app, this would come from the student's verified profile/assessment
-  const mockStudentSkills = ['Python', 'SQL', 'React', 'Figma', 'Agile'];
-  const jobs = getJobsForStudent(mockStudentSkills);
-  
-  const myApplications = getApplicationsForStudent();
-  const hasApplied = (jobId: string) => myApplications.some(app => app.jobId === jobId);
+  const [jobs, setJobs] = useState<JobOpportunity[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    Promise.all([
+      apiRequest<{ opportunities: Array<{ id: string; title: string; company: string; location: string; type: string; term: string; pay: string; required_skills: string[]; match_score: number }> }>('/student/opportunities'),
+      apiRequest<{ applications: Array<{ job_id: string }> }>('/student/applications'),
+    ]).then(([opportunityData, applicationData]) => {
+      setJobs(opportunityData.opportunities.map(job => ({
+        id: job.id,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        type: job.type,
+        term: job.term,
+        pay: job.pay,
+        matchScore: job.match_score,
+        skills: job.required_skills.map(name => ({ name, matched: true })),
+        posted: 'Recently',
+      })));
+      setAppliedJobIds(new Set(applicationData.applications.map(application => application.job_id)));
+    }).catch(() => showToast('error', 'Could not load opportunities', 'Please try again in a moment.'));
+  }, [showToast]);
+
+  const hasApplied = (jobId: string) => appliedJobIds.has(jobId);
+  const stats = {
+    saved: savedJobs.size,
+    applied: appliedJobIds.size,
+    interviewing: 0,
+    offers: 0,
+  };
 
   const toggleRoleFilter = (role: string) => {
     setRoleFilters(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
@@ -344,12 +362,12 @@ const Opportunities = () => {
                       ) : (
                         <button 
                           onClick={() => {
-                            applyToJobsContext(job.id);
-                            applyToJob(
-                              { id: job.id, title: job.title, company: job.company },
-                              { name: profile?.name || 'Unknown', title: profile?.title || 'Unknown', location: profile?.location || 'Unknown' }
-                            );
-                            showToast('success', 'Application Submitted', `You have successfully applied for the ${job.title} role.`);
+                            apiRequest(`/student/opportunities/${job.id}/apply`, { method: 'POST' })
+                              .then(() => {
+                                setAppliedJobIds(previous => new Set(previous).add(job.id));
+                                showToast('success', 'Application Submitted', `You have successfully applied for the ${job.title} role.`);
+                              })
+                              .catch(() => showToast('error', 'Application failed', 'You may have already applied to this opportunity.'));
                           }}
                           className="bg-indigo-600 text-white text-sm font-bold px-6 py-2.5 rounded-full hover:bg-indigo-700 transition-colors"
                         >
