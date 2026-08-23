@@ -27,6 +27,7 @@ interface StudentContextType {
   mentors: MentorItem[];
   // Actions
   updateProfileStrength: (strength: number) => void;
+  updateProfileData: (data: Partial<StudentProfile>) => void;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -76,6 +77,10 @@ export const StudentProvider: React.FC<{ children: ReactNode }> = ({ children })
     setProfile(prev => prev ? { ...prev, profileStrength: strength } : null);
   };
 
+  const updateProfileData = (data: Partial<StudentProfile>) => {
+    setProfile(prev => prev ? { ...prev, ...data } : null);
+  };
+
   return (
     <StudentContext.Provider
       value={{
@@ -87,6 +92,7 @@ export const StudentProvider: React.FC<{ children: ReactNode }> = ({ children })
         activity,
         mentors,
         updateProfileStrength,
+        updateProfileData,
       }}
     >
       {children}

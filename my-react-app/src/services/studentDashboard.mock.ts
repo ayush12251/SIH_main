@@ -5,6 +5,10 @@ export interface StudentProfile {
   name: string;
   title: string;
   avatarUrl: string | null;
+  location: string;
+  email: string;
+  github: string;
+  bio: string;
   profileStrength: number;
   completedSkills: number;
   applicationsSent: number;
@@ -52,7 +56,11 @@ export interface MentorItem {
 export const mockStudentProfile: StudentProfile = {
   name: 'Alex Rivera',
   title: 'MSc Data Science Candidate',
-  avatarUrl: null,
+  location: 'Seattle, WA',
+  email: 'alex.rivera@university.edu',
+  github: 'github.com/alexr-dev',
+  bio: 'Data science student passionate about predictive modeling and ML.',
+  avatarUrl: 'https://i.pravatar.cc/150?u=alexr',
   profileStrength: 85,
   completedSkills: 12,
   applicationsSent: 5,

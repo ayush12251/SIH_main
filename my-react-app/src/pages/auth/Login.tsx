@@ -5,12 +5,25 @@ import { Input } from '../../components/Input';
 import { Card } from '../../components/Card';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { useState, useEffect } from 'react';
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+interface LoginErrors {
+  email?: string;
+  password?: string;
+}
 
 const Login = () => {
   const navigate = useNavigate();
   const { login, user } = useAuth();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<LoginErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -20,10 +33,29 @@ const Login = () => {
     }
   }, [user, navigate]);
 
+  const validate = (): boolean => {
+    const newErrors: LoginErrors = {};
+    if (!email.trim()) newErrors.email = 'Email address is required.';
+    else if (!isValidEmail(email)) newErrors.email = 'Please enter a valid email address.';
+    if (!password) newErrors.password = 'Password is required.';
+    else if (password.length < 8) newErrors.password = 'Password must be at least 8 characters.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const role = email.toLowerCase().includes('industry') || email.toLowerCase().includes('recruiter') ? 'industry' : 'student';
-    await login(email || 'demo@internix.com', role);
+    if (!validate()) return;
+    setIsSubmitting(true);
+    try {
+      const role = email.toLowerCase().includes('industry') || email.toLowerCase().includes('recruiter') ? 'industry' : 'student';
+      await login(email, role);
+      showToast('success', 'Welcome back!', 'You have been logged in successfully.');
+    } catch {
+      showToast('error', 'Login failed', 'Invalid credentials. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,14 +91,15 @@ const Login = () => {
             <h2 className="text-[1.75rem] font-bold text-gray-900 mb-2 tracking-tight">Login</h2>
             <p className="text-gray-500 mb-10 text-[0.95rem]">Access your Internix account.</p>
 
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} noValidate>
               <div className="mb-6">
                 <Input 
                   label="Email Address" 
                   type="email" 
                   placeholder="" 
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }}
+                  error={errors.email}
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
@@ -75,13 +108,21 @@ const Login = () => {
                 <Input 
                   label="Password" 
                   type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                  error={errors.password}
                   rightElement={<Link to="/forgot-password" className="text-xs text-[#4c42e6] font-bold hover:underline">Forgot Password?</Link>}
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
 
-              <Button type="submit" fullWidth className="mt-2 py-3.5 bg-[#4c42e6] hover:bg-indigo-700 text-white font-semibold rounded-xl! text-[0.95rem] shadow-[0_4px_14px_0_rgba(76,66,230,0.39)] transition duration-200">
-                Login <ArrowRight size={18} className="ml-1" />
+              <Button
+                type="submit"
+                fullWidth
+                disabled={isSubmitting}
+                className="mt-2 py-3.5 bg-[#4c42e6] hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl! text-[0.95rem] shadow-[0_4px_14px_0_rgba(76,66,230,0.39)] transition duration-200"
+              >
+                {isSubmitting ? 'Logging in…' : <> Login <ArrowRight size={18} className="ml-1" /></>}
               </Button>
             </form>
 

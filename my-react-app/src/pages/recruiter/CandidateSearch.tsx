@@ -1,236 +1,97 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
-  Search, Activity, MapPin, Briefcase, 
-  GraduationCap, ExternalLink, Check, MoreHorizontal, CheckCircle2 
+  Activity, MapPin, Briefcase, 
+  GraduationCap,
+  ChevronRight, ChevronLeft, X
 } from 'lucide-react';
-import { getCandidateShortlist, getCandidateDetails } from '../../services/candidateService';
 import { RecruiterNavbar } from '../../components/RecruiterNavbar';
+import { useATS, Application, ApplicationStatus, CandidateProfile } from '../../context/ATSContext';
 
-const CandidateSearch = () => {
-  const shortlist = getCandidateShortlist();
-  const [selectedId, setSelectedId] = useState<string>('1');
-  const details = getCandidateDetails();
+const COLUMNS: { id: ApplicationStatus; title: string; color: string }[] = [
+  { id: 'Applied', title: 'Applied', color: 'bg-gray-100 border-gray-200' },
+  { id: 'Reviewed', title: 'Reviewed', color: 'bg-blue-50 border-blue-200' },
+  { id: 'Interviewing', title: 'Interviewing', color: 'bg-purple-50 border-purple-200' },
+  { id: 'Offered', title: 'Offered', color: 'bg-emerald-50 border-emerald-200' },
+];
 
+const CandidateDetailsModal: React.FC<{ 
+  details: CandidateProfile; 
+  onClose: () => void;
+}> = ({ details, onClose }) => {
   return (
-    <div className="min-h-screen bg-white font-sans text-neutral-900 flex flex-col">
-      {/* Navbar */}
-      <RecruiterNavbar />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col">
+        {/* Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-6 right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors z-10"
+        >
+          <X className="w-5 h-5 text-gray-600" />
+        </button>
 
-      {/* Main Layout */}
-      <div className="flex flex-1 overflow-hidden">
-        
-        {/* Left Sidebar - Shortlist */}
-        <aside className="w-80 lg:w-96 border-r border-gray-100 flex flex-col bg-white overflow-hidden">
-          <div className="p-6 border-b border-gray-50">
-            <div className="flex justify-between items-end mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Shortlist</h2>
-              <span className="text-xs font-semibold text-gray-400">24 Candidates</span>
-            </div>
-            
-            <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-              <button className="whitespace-nowrap px-3 py-1.5 bg-gray-100 rounded-full text-gray-700 text-[0.7rem] font-bold">Skill Match &gt; 80%</button>
-              <button className="whitespace-nowrap px-3 py-1.5 bg-gray-100 rounded-full text-gray-700 text-[0.7rem] font-bold">Grad Yr: 2024</button>
-              <button className="whitespace-nowrap px-3 py-1.5 bg-white border border-gray-200 rounded-full text-gray-500 text-[0.7rem] font-bold">+ Add Filter</button>
-            </div>
-
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input 
-                type="text" 
-                placeholder="Filter by name or keyword..." 
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {shortlist.map((candidate) => (
-              <div 
-                key={candidate.id}
-                onClick={() => setSelectedId(candidate.id)}
-                className={`p-5 border-b border-gray-50 cursor-pointer transition-colors relative ${candidate.isSelected || candidate.id === selectedId ? 'bg-blue-50/30' : 'hover:bg-gray-50'}`}
-              >
-                {(candidate.isSelected || candidate.id === selectedId) && (
-                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-r-md"></div>
-                )}
+        <div className="p-8 lg:p-10">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-start justify-between mb-10 pb-8 border-b border-gray-100 gap-6">
+            <div className="flex items-center gap-6">
+              {details.avatarUrl ? (
+                <img src={details.avatarUrl} alt={details.name} className="w-24 h-24 rounded-full object-cover shadow-sm" />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-2xl">
+                  {details.initials || details.name.charAt(0)}
+                </div>
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-1">{details.name}</h1>
+                <p className="text-gray-500 font-medium mb-3">{details.role}</p>
                 
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-3">
-                    {candidate.avatarUrl ? (
-                      <img src={candidate.avatarUrl} alt={candidate.name} className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-sm">
-                        {candidate.initials}
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-sm">{candidate.name}</h4>
-                      <p className="text-[0.65rem] text-gray-500 font-medium">{candidate.role}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-xs font-bold ${candidate.matchScore >= 80 ? 'text-emerald-500' : 'text-yellow-500'}`}>
-                      {candidate.matchScore}% Match
-                    </div>
-                    <div className="text-[0.6rem] text-gray-400 font-medium mt-0.5">{candidate.appliedDate}</div>
-                  </div>
+                <div className="flex items-center flex-wrap gap-x-6 gap-y-2 text-xs text-gray-400 font-semibold">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> {details.location}
+                  </span>
+                  <span className="text-gray-300">|</span>
+                  <span className="flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5" /> {details.yoe}
+                  </span>
+                  <span className="text-gray-300">|</span>
+                  <span className="flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5" /> {details.education}
+                  </span>
                 </div>
-
-                <div className="flex flex-wrap gap-1.5 mt-3 pl-13">
-                  {candidate.tags.map((tag, idx) => (
-                    <span 
-                      key={idx} 
-                      className={`px-2 py-0.5 text-[0.6rem] font-bold rounded ${
-                        tag.type === 'missing' 
-                          ? 'bg-red-50 text-red-600' 
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {tag.text}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </aside>
-
-        {/* Main Content - Candidate Details */}
-        <main className="flex-1 overflow-y-auto bg-white">
-          <div className="p-8 lg:p-12 max-w-250">
-            
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-start justify-between mb-10 pb-8 border-b border-gray-100 gap-6">
-              <div className="flex items-center gap-6">
-                {details.avatarUrl ? (
-                  <img src={details.avatarUrl} alt={details.name} className="w-24 h-24 rounded-full object-cover shadow-sm" />
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold text-2xl">
-                    {details.name.charAt(0)}
-                  </div>
-                )}
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-1">{details.name}</h1>
-                  <p className="text-gray-500 font-medium mb-3">{details.role}</p>
-                  
-                  <div className="flex items-center flex-wrap gap-x-6 gap-y-2 text-xs text-gray-400 font-semibold">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5" /> {details.location}
-                    </span>
-                    <span className="text-gray-300">|</span>
-                    <span className="flex items-center gap-1.5">
-                      <Briefcase className="w-3.5 h-3.5" /> {details.yoe}
-                    </span>
-                    <span className="text-gray-300">|</span>
-                    <span className="flex items-center gap-1.5">
-                      <GraduationCap className="w-3.5 h-3.5" /> {details.education}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button className="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-gray-50 shadow-sm transition-all">
-                  Reject
-                </button>
-                <button className="px-5 py-2.5 bg-indigo-600 text-white rounded-full font-bold text-sm hover:bg-indigo-700 shadow-sm transition-all">
-                  Move to Interview
-                </button>
               </div>
             </div>
+          </div>
 
-            {/* Grid Layout for Details */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Grid Layout for Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            {/* Left Column (Insight) */}
+            <div className="flex flex-col gap-10">
               
-              {/* Left Column (Insight, Status, History) */}
-              <div className="lg:col-span-2 flex flex-col gap-10">
-                
-                {/* AI Match Insight */}
-                <div className="bg-[#f8f7fa] rounded-2xl p-6">
-                  <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-4">
-                    <Activity className="w-4 h-4 text-indigo-600" /> AI Match Insight
-                  </h3>
-                  <p className="text-sm text-gray-600 font-medium mb-4">{details.aiInsight.intro}</p>
-                  <ul className="space-y-3">
-                    {details.aiInsight.points.map((point, idx) => (
-                      <li key={idx} className="text-sm">
-                        <span className="font-bold text-gray-900">{point.title} </span>
-                        <span className="text-gray-600 font-medium">{point.desc}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Application Status */}
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-6">Application Status</h3>
-                  <div className="flex items-center justify-between relative px-4">
-                    <div className="absolute left-10 right-10 top-5 h-0.5 bg-gray-200 -z-10"></div>
-                    <div className="absolute left-10 right-[50%] top-5 h-0.5 bg-emerald-500 -z-10"></div>
-                    
-                    <div className="flex flex-col items-center gap-2 z-10 bg-white px-2">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
-                        <Check className="w-5 h-5" />
-                      </div>
-                      <span className="text-[0.65rem] font-bold text-gray-900">Applied</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2 z-10 bg-white px-2">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-sm">
-                        <Check className="w-5 h-5" />
-                      </div>
-                      <span className="text-[0.65rem] font-bold text-gray-900">Reviewed</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2 z-10 bg-white px-2">
-                      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white shadow-sm">
-                        <MoreHorizontal className="w-5 h-5" />
-                      </div>
-                      <span className="text-[0.65rem] font-bold text-blue-600">Interviewing</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2 z-10 bg-white px-2">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
-                        <Briefcase className="w-4 h-4" />
-                      </div>
-                      <span className="text-[0.65rem] font-bold text-gray-400">Offer</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Interview History */}
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">Interview History</h3>
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50 text-[0.65rem] font-bold text-gray-500 uppercase tracking-wider">
-                        <th className="px-4 py-3 rounded-l-lg">Round</th>
-                        <th className="px-4 py-3">Interviewer</th>
-                        <th className="px-4 py-3">Date</th>
-                        <th className="px-4 py-3 rounded-r-lg">Score</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {details.interviewHistory.map((history, idx) => (
-                        <tr key={idx} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-4 text-sm font-semibold text-gray-800">{history.round}</td>
-                          <td className="px-4 py-4 text-sm font-medium text-gray-600">{history.interviewer}</td>
-                          <td className="px-4 py-4 text-sm font-medium text-gray-500">{history.date}</td>
-                          <td className="px-4 py-4 text-sm font-bold text-emerald-500">{history.score}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
+              {/* AI Match Insight */}
+              <div className="bg-[#f8f7fa] rounded-2xl p-6">
+                <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-4">
+                  <Activity className="w-4 h-4 text-indigo-600" /> AI Match Insight
+                </h3>
+                <p className="text-sm text-gray-600 font-medium mb-4">{details.aiInsight.intro}</p>
+                <ul className="space-y-3">
+                  {details.aiInsight.points.map((point, idx) => (
+                    <li key={idx} className="text-sm">
+                      <span className="font-bold text-gray-900">{point.title} </span>
+                      <span className="text-gray-600 font-medium">{point.desc}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {/* Right Column (Skills, Projects, References) */}
-              <div className="flex flex-col gap-10">
-                
-                {/* Skills Compatibility */}
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">Skills Compatibility</h3>
+            </div>
+
+            {/* Right Column (Skills) */}
+            <div className="flex flex-col gap-10">
+              
+              {/* Skills Compatibility */}
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg mb-4">Skills Compatibility</h3>
+                <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50 text-[0.65rem] font-bold text-gray-500 uppercase tracking-wider">
@@ -253,46 +114,165 @@ const CandidateSearch = () => {
                           <td className={`px-3 py-3 text-xs font-bold text-center ${skill.colorClass}`}>{skill.candidate}</td>
                         </tr>
                       ))}
+                      {details.skills.length === 0 && (
+                        <tr>
+                          <td colSpan={3} className="px-3 py-4 text-center text-sm text-gray-400 font-medium">
+                            No detailed skills data available for this candidate yet.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-
-                {/* Key Projects */}
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">Key Projects</h3>
-                  <div className="flex flex-col gap-4">
-                    {details.projects.map((project, idx) => (
-                      <div key={idx} className="border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors cursor-pointer group">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-bold text-blue-600 text-sm group-hover:text-blue-700">{project.title}</h4>
-                          <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-600" />
-                        </div>
-                        <p className="text-xs text-gray-500 font-medium leading-relaxed">{project.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* External References */}
-                <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">External References</h3>
-                  <div className="bg-[#f8f9fc] rounded-xl p-5 border-l-4 border-emerald-500">
-                    <h4 className="flex items-center gap-1.5 font-bold text-gray-900 text-xs mb-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" /> {details.reference.authorTitle}
-                    </h4>
-                    <p className="text-xs text-gray-500 italic font-medium leading-relaxed">
-                      {details.reference.quote}
-                    </p>
-                  </div>
-                </div>
-
               </div>
+
             </div>
-
           </div>
-        </main>
 
+        </div>
       </div>
+    </div>
+  );
+};
+
+const CandidateSearch = () => {
+  const { getApplicationsForRecruiter, updateApplicationStatus } = useATS();
+  const applications = getApplicationsForRecruiter();
+  
+  const [selectedCandidate, setSelectedCandidate] = useState<CandidateProfile | null>(null);
+
+  const moveApplication = (app: Application, direction: 'forward' | 'backward') => {
+    const currentIndex = COLUMNS.findIndex(col => col.id === app.status);
+    if (direction === 'forward' && currentIndex < COLUMNS.length - 1) {
+      updateApplicationStatus(app.id, COLUMNS[currentIndex + 1].id);
+    } else if (direction === 'backward' && currentIndex > 0) {
+      updateApplicationStatus(app.id, COLUMNS[currentIndex - 1].id);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans text-neutral-900 flex flex-col">
+      {/* Navbar */}
+      <RecruiterNavbar />
+
+      {/* Kanban Board Container */}
+      <main className="flex-1 p-6 lg:p-8 max-w-[1600px] mx-auto w-full flex flex-col h-[calc(100vh-80px)] overflow-hidden">
+        
+        <div className="mb-6 flex flex-col md:flex-row justify-between md:items-end gap-4 shrink-0">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Applicant Pipeline</h1>
+            <p className="text-sm text-gray-500 font-medium">Manage candidates across all active job postings.</p>
+          </div>
+        </div>
+
+        {/* Board */}
+        <div className="flex-1 flex gap-6 overflow-x-auto pb-4 items-start">
+          {COLUMNS.map((col, idx) => {
+            const columnApps = applications.filter(app => app.status === col.id);
+            
+            return (
+              <div key={col.id} className={`w-80 shrink-0 flex flex-col max-h-full rounded-2xl border ${col.color}`}>
+                {/* Column Header */}
+                <div className="p-4 border-b border-black/5 bg-black/5 rounded-t-2xl flex items-center justify-between shrink-0">
+                  <h3 className="font-bold text-gray-900 text-sm">{col.title}</h3>
+                  <span className="text-xs font-bold bg-white text-gray-600 px-2 py-0.5 rounded-full shadow-sm">
+                    {columnApps.length}
+                  </span>
+                </div>
+
+                {/* Cards Container */}
+                <div className="p-3 flex-1 overflow-y-auto flex flex-col gap-3">
+                  {columnApps.map(app => (
+                    <div key={app.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                      
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          {app.candidate.avatarUrl ? (
+                            <img src={app.candidate.avatarUrl} alt={app.candidate.name} className="w-10 h-10 rounded-full object-cover border border-gray-100" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                              {app.candidate.initials || app.candidate.name.charAt(0)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <h4 
+                              onClick={() => setSelectedCandidate(app.candidate)}
+                              className="font-bold text-gray-900 text-sm cursor-pointer hover:text-indigo-600 hover:underline truncate"
+                            >
+                              {app.candidate.name}
+                            </h4>
+                            <p className="text-[0.65rem] text-gray-500 font-medium truncate">{app.jobTitle}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 ml-2">
+                          <div className={`text-xs font-bold ${app.candidate.matchScore >= 80 ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                            {app.candidate.matchScore}% Match
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {app.candidate.tags.slice(0,3).map((tag, i) => (
+                          <span 
+                            key={i} 
+                            className={`px-2 py-0.5 text-[0.6rem] font-bold rounded ${
+                              tag.type === 'missing' 
+                                ? 'bg-red-50 text-red-600' 
+                                : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {tag.text}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                        <button 
+                          disabled={idx === 0}
+                          onClick={() => moveApplication(app, 'backward')}
+                          className={`p-1.5 rounded-full transition-colors ${idx === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+
+                        <button 
+                          onClick={() => setSelectedCandidate(app.candidate)}
+                          className="text-[0.7rem] font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
+                        >
+                          View Details
+                        </button>
+
+                        <button 
+                          disabled={idx === COLUMNS.length - 1}
+                          onClick={() => moveApplication(app, 'forward')}
+                          className={`p-1.5 rounded-full transition-colors ${idx === COLUMNS.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'}`}
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                    </div>
+                  ))}
+                  
+                  {columnApps.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-sm font-medium text-gray-400">No candidates in this stage.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </main>
+
+      {/* Modal Overlay */}
+      {selectedCandidate && (
+        <CandidateDetailsModal 
+          details={selectedCandidate} 
+          onClose={() => setSelectedCandidate(null)} 
+        />
+      )}
     </div>
   );
 };

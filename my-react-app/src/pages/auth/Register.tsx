@@ -1,11 +1,39 @@
 import { useEffect, useState } from 'react';
-import { FileUp, Sparkles } from 'lucide-react';
+import { FileUp, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import rocketImg from '../../assets/rocket.png';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Card } from '../../components/Card';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  const map = [
+    { label: '', color: 'bg-gray-200' },
+    { label: 'Weak', color: 'bg-red-400' },
+    { label: 'Fair', color: 'bg-amber-400' },
+    { label: 'Good', color: 'bg-blue-400' },
+    { label: 'Strong', color: 'bg-emerald-500' },
+  ];
+  return { score, ...map[score] };
+};
+
+interface RegisterErrors {
+  fullName?: string;
+  companyName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
 const Register = () => {
   const [searchParams] = useSearchParams();
@@ -13,7 +41,15 @@ const Register = () => {
   const role = searchParams.get('role');
   const [mounted, setMounted] = useState(false);
   const { register, user } = useAuth();
+  const { showToast } = useToast();
+  const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState<RegisterErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const passwordStrength = getPasswordStrength(password);
 
   useEffect(() => {
     if (user) {
@@ -25,15 +61,41 @@ const Register = () => {
 
   useEffect(() => {
     setMounted(true);
-    if (!role) {
-      navigate('/choose-path');
-    }
+    if (!role) navigate('/choose-path');
   }, [role, navigate]);
 
   if (!mounted || !role) return null;
 
   const isStudent = role === 'student';
-  
+
+  const validate = (): boolean => {
+    const newErrors: RegisterErrors = {};
+    if (isStudent && !fullName.trim()) newErrors.fullName = 'Full name is required.';
+    if (!isStudent && !companyName.trim()) newErrors.companyName = 'Company name is required.';
+    if (!email.trim()) newErrors.email = 'Email address is required.';
+    else if (!isValidEmail(email)) newErrors.email = 'Please enter a valid email address.';
+    if (!password) newErrors.password = 'Password is required.';
+    else if (password.length < 8) newErrors.password = 'Password must be at least 8 characters.';
+    if (!confirmPassword) newErrors.confirmPassword = 'Please confirm your password.';
+    else if (password !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setIsSubmitting(true);
+    try {
+      await register(email, (role as any) || 'student');
+      showToast('success', 'Account created!', 'Welcome to Internix. Let\'s get started.');
+    } catch {
+      showToast('error', 'Registration failed', 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const title = isStudent ? (
     <>Your resume is your<br />profile.<br />
     <span className="bg-linear-to-r from-[#4ade80] to-[#2dd4bf] text-transparent bg-clip-text">
@@ -96,6 +158,19 @@ const Register = () => {
 
             {isStudent ? (
               <>
+                {/* Full Name for students */}
+                <div className="mb-6">
+                  <Input
+                    label="Full Name"
+                    type="text"
+                    placeholder=""
+                    value={fullName}
+                    onChange={(e) => { setFullName(e.target.value); setErrors(prev => ({ ...prev, fullName: undefined })); }}
+                    error={errors.fullName}
+                    className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
+                  />
+                </div>
+
                 {/* Upload Box */}
                 <div className="mb-8 border-2 border-dashed border-[#e5e7eb] rounded-3xl bg-[#fcfcfd] hover:bg-gray-50 transition-colors py-8 px-6 flex flex-col items-center justify-center cursor-pointer group">
                   <div className="w-12 h-12 bg-[#f0effd] rounded-full flex items-center justify-center mb-4 group-hover:bg-[#e0defc] transition-colors">
@@ -115,40 +190,79 @@ const Register = () => {
               </>
             ) : (
               <div className="mb-6">
-                <Input 
-                  label="Company Name" 
-                  type="text" 
-                  placeholder="" 
+                <Input
+                  label="Company Name"
+                  type="text"
+                  placeholder=""
+                  value={companyName}
+                  onChange={(e) => { setCompanyName(e.target.value); setErrors(prev => ({ ...prev, companyName: undefined })); }}
+                  error={errors.companyName}
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
             )}
 
-            <form onSubmit={async (e) => { 
-              e.preventDefault(); 
-              await register(email || 'newuser@internix.com', (role as any) || 'student'); 
-            }}>
+            <form onSubmit={handleSubmit} noValidate>
               <div className="mb-6">
-                <Input 
-                  label="Email Address" 
-                  type="email" 
-                  placeholder="" 
+                <Input
+                  label="Email Address"
+                  type="email"
+                  placeholder=""
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }}
+                  error={errors.email}
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
+
+              <div className="mb-2">
+                <Input
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                  error={errors.password}
+                  className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
+                />
+              </div>
+
+              {/* Password Strength Meter */}
+              {password.length > 0 && (
+                <div className="mb-6">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className={`h-1 flex-1 rounded-full transition-all duration-300 ${i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200'}`} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 font-medium">{passwordStrength.label && `Password strength: ${passwordStrength.label}`}</p>
+                </div>
+              )}
 
               <div className="mb-8">
-                <Input 
-                  label="Password" 
+                <Input
+                  label="Confirm Password"
                   type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setErrors(prev => ({ ...prev, confirmPassword: undefined })); }}
+                  error={errors.confirmPassword}
+                  rightElement={
+                    confirmPassword.length > 0
+                      ? password === confirmPassword
+                        ? <CheckCircle2 size={16} className="text-emerald-500" />
+                        : <XCircle size={16} className="text-red-400" />
+                      : undefined
+                  }
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
 
-              <Button type="submit" fullWidth className="py-3.5 bg-[#3b2ec4] hover:bg-[#2d22a3] text-white font-semibold rounded-xl! text-[0.95rem] shadow-[0_4px_14px_0_rgba(59,46,196,0.39)] transition duration-200">
-                Create Account
+              <Button
+                type="submit"
+                fullWidth
+                disabled={isSubmitting}
+                className="py-3.5 bg-[#3b2ec4] hover:bg-[#2d22a3] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl! text-[0.95rem] shadow-[0_4px_14px_0_rgba(59,46,196,0.39)] transition duration-200"
+              >
+                {isSubmitting ? 'Creating Account…' : 'Create Account'}
               </Button>
             </form>
 

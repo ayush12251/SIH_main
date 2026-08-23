@@ -1,7 +1,13 @@
 import { 
-  Activity, Download, Wand2, PieChart, 
-  ArrowUp, ArrowDown, MoreVertical
+  ArrowUp, 
+  ArrowDown, 
+  MoreVertical, 
+  PieChart, 
+  Download, 
+  Wand2,
+  Activity
 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 import {
   getRecruitmentFunnel,
   getKPIs,
@@ -21,6 +27,7 @@ const RecruitmentAnalytics = () => {
   const demographics = getDemographics();
   const learningPrograms = getLearningPrograms();
   const sourcing = getSourcingPerformance();
+  const { showToast } = useToast();
 
   return (
     <div className="min-h-screen bg-[#f8f9fc] font-sans text-neutral-900 flex flex-col">
@@ -37,7 +44,10 @@ const RecruitmentAnalytics = () => {
             <p className="text-sm text-gray-500 font-medium">Comprehensive performance metrics across the hiring lifecycle.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-50 shadow-sm transition-all">
+            <button 
+              onClick={() => showToast('success', 'Report Exported', 'Your custom analytics report has been downloaded.')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 font-bold text-sm hover:bg-gray-50 shadow-sm transition-all"
+            >
               <Download className="w-4 h-4" /> Export Report
             </button>
             <button className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 border border-indigo-600 rounded-xl text-white font-bold text-sm hover:bg-indigo-700 shadow-sm transition-all">
@@ -231,7 +241,10 @@ const RecruitmentAnalytics = () => {
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-lg">Sourcing Performance</h3>
-              <button className="flex items-center gap-1.5 text-indigo-600 text-sm font-bold hover:text-indigo-700 transition-colors">
+              <button 
+                onClick={() => showToast('success', 'CSV Export Complete', 'sourcing_performance.csv is ready.')}
+                className="flex items-center gap-1.5 text-indigo-600 text-sm font-bold hover:text-indigo-700 transition-colors"
+              >
                 <Download className="w-4 h-4" /> Export CSV
               </button>
             </div>

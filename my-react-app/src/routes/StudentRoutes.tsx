@@ -6,6 +6,7 @@ import Opportunities from '../pages/student/Opportunities';
 import Portfolio from '../pages/student/Portfolio';
 import Progress from '../pages/student/Progress';
 import Library from '../pages/student/Library';
+import ProfileSettings from '../pages/student/ProfileSettings';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { StudentProvider } from '../context/StudentContext';
 
@@ -23,6 +24,7 @@ export default function StudentRoutes() {
           <Route path="portfolio" element={<Portfolio />} />
           <Route path="progress" element={<Progress />} />
           <Route path="library" element={<Library />} />
+          <Route path="settings" element={<ProfileSettings />} />
         </Route>
       </Route>
     </Routes>

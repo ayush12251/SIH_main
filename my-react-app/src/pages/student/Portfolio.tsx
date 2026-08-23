@@ -19,8 +19,8 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
+import { useStudent } from '../../context/StudentContext';
 import {
-  mockPortfolioProfile,
   mockCredentials,
   mockAchievements,
   mockProjects,
@@ -48,7 +48,7 @@ const badgeStyles = {
 };
 
 const Portfolio = () => {
-  const profile = mockPortfolioProfile;
+  const { profile } = useStudent();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
@@ -57,38 +57,38 @@ const Portfolio = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10 flex flex-col gap-10">
         
         {/* Profile Header */}
-        <div className="flex items-start gap-8">
-          <div className="w-40 h-40 rounded-3xl overflow-hidden shrink-0 border-4 border-white shadow-sm bg-gray-200">
-            <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8 text-center md:text-left">
+          <div className="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden shrink-0 border-4 border-white shadow-sm bg-gray-200">
+            <img src={profile?.avatarUrl || 'https://i.pravatar.cc/150?u=default'} alt={profile?.name} className="w-full h-full object-cover" />
           </div>
           
-          <div className="flex-1 pt-2">
-            <h1 className="text-4xl font-bold text-gray-900 mb-1">{profile.name}</h1>
-            <p className="text-lg text-gray-600 font-medium mb-4">{profile.title}</p>
+          <div className="flex-1 pt-2 w-full">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">{profile?.name}</h1>
+            <p className="text-base md:text-lg text-gray-600 font-medium mb-4">{profile?.title}</p>
             
-            <div className="flex items-center gap-6 text-sm font-semibold text-gray-500 mb-8">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 text-sm font-semibold text-gray-500 mb-8">
               <div className="flex items-center gap-2">
                 <MapPin size={16} />
-                {profile.location}
+                {profile?.location || 'Not Specified'}
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={16} />
-                {profile.email}
+                {profile?.email || 'Not Specified'}
               </div>
               <div className="flex items-center gap-2 text-indigo-600">
                 <LinkIcon size={16} />
-                <a href={`https://${profile.github}`} target="_blank" rel="noreferrer" className="hover:underline">
-                  {profile.github}
+                <a href={`https://${profile?.github}`} target="_blank" rel="noreferrer" className="hover:underline">
+                  {profile?.github || 'Not Specified'}
                 </a>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <button className="flex items-center gap-2 bg-indigo-600 text-white text-sm font-bold px-6 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+              <button className="w-full sm:w-auto flex justify-center items-center gap-2 bg-indigo-600 text-white text-sm font-bold px-6 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shadow-sm">
                 <Share2 size={16} />
                 Share Portfolio
               </button>
-              <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-bold px-6 py-2.5 rounded-full hover:bg-gray-50 transition-colors shadow-sm">
+              <button className="w-full sm:w-auto flex justify-center items-center gap-2 bg-white border border-gray-200 text-gray-700 text-sm font-bold px-6 py-2.5 rounded-full hover:bg-gray-50 transition-colors shadow-sm">
                 <Download size={16} />
                 Download Resume
               </button>
@@ -97,7 +97,7 @@ const Portfolio = () => {
         </div>
 
         {/* Main Content Layout */}
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
           
           {/* Left Column (Credentials, Achievements, Projects) */}
           <div className="flex-1 flex flex-col gap-10">
@@ -108,7 +108,7 @@ const Portfolio = () => {
                 <CheckCircle2 size={20} className="text-indigo-600" />
                 <h2 className="text-xl font-bold text-gray-900">Verified Credentials</h2>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {mockCredentials.map((cred) => (
                   <Card key={cred.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col h-full relative">
                     <span className={`absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full ${badgeStyles[cred.badge.color]}`}>
@@ -134,7 +134,7 @@ const Portfolio = () => {
                 <Trophy size={20} className="text-indigo-600" />
                 <h2 className="text-xl font-bold text-gray-900">Achievements &amp; Awards</h2>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {mockAchievements.map((ach) => (
                   <Card key={ach.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col h-full relative">
                     <span className={`absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full ${badgeStyles[ach.badge.color]}`}>
@@ -161,13 +161,13 @@ const Portfolio = () => {
               </div>
               <div className="flex flex-col gap-4">
                 {mockProjects.map((proj) => (
-                  <Card key={proj.id} radius="2xl" shadow="sm" padding="normal" className="flex gap-6 relative">
-                    <span className="absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-700">
+                  <Card key={proj.id} radius="2xl" shadow="sm" padding="normal" className="flex flex-col md:flex-row gap-6 relative">
+                    <span className="absolute top-5 right-5 text-[10px] font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-700 z-10">
                       {proj.badge}
                     </span>
                     
                     {/* Placeholder Visual */}
-                    <div className="w-48 h-32 bg-gray-100 rounded-xl shrink-0 flex items-center justify-center overflow-hidden border border-gray-200/50">
+                    <div className="w-full md:w-48 h-40 md:h-32 bg-gray-100 rounded-xl shrink-0 flex items-center justify-center overflow-hidden border border-gray-200/50 mt-8 md:mt-0">
                       {proj.placeholderType === 'diagram' ? (
                         <span className="text-xs font-mono text-gray-400">Architecture<br/>Diagram</span>
                       ) : (
@@ -204,7 +204,7 @@ const Portfolio = () => {
           </div>
 
           {/* Right Column (Stack, Upload, Vault) */}
-          <aside className="w-90 shrink-0 flex flex-col gap-6">
+          <aside className="w-full lg:w-90 shrink-0 flex flex-col gap-6">
             
             {/* Technical Stack */}
             <Card radius="2xl" shadow="sm" padding="normal" className="flex flex-col gap-6">

@@ -46,7 +46,7 @@ const StudentDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-5">
 
         {/* Profile Card */}
-        <Card radius="2xl" shadow="sm" padding="none" className="px-6 py-5 flex items-center gap-6">
+        <Card radius="2xl" shadow="sm" padding="none" className="px-6 py-5 flex flex-col md:flex-row items-start md:items-center gap-6">
           {/* Avatar */}
           <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
             <User size={28} className="text-gray-400" />
@@ -79,7 +79,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* Match Readiness */}
-          <div className="shrink-0 border border-gray-100 rounded-xl px-5 py-3 min-w-37.5">
+          <div className="shrink-0 border border-gray-100 rounded-xl px-5 py-3 w-full md:w-auto md:min-w-37.5">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Match Readiness</p>
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp size={16} className="text-indigo-500" />
@@ -94,7 +94,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* ATS Score */}
-          <div className="shrink-0 border border-gray-100 rounded-xl px-5 py-3 min-w-32.5">
+          <div className="shrink-0 border border-gray-100 rounded-xl px-5 py-3 w-full md:w-auto md:min-w-32.5">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">ATS Resume Score</p>
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 size={16} className="text-green-500" />
@@ -126,7 +126,7 @@ const StudentDashboard = () => {
         {/* Career Journey */}
         <div>
           <h2 className="text-base font-bold text-gray-900 mb-3">Your Career Journey</h2>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {journeyCards.map((card) => (
               <Card key={card.id} radius="2xl" shadow="sm" padding="none" className="p-5 flex flex-col gap-3">
                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
@@ -148,13 +148,13 @@ const StudentDashboard = () => {
         </div>
 
         {/* Bottom Row: Recommended + Activity */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Recommended + Mentorship (left 2 cols) */}
           <div className="col-span-2 flex flex-col gap-4">
             {/* Recommended for You */}
             <div>
               <h2 className="text-base font-bold text-gray-900 mb-3">Recommended for You</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {recommendations.map((rec) => (
                   <Card key={rec.id} radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex items-center gap-4">
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">

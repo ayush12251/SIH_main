@@ -11,10 +11,12 @@ import {
   Users,
   RefreshCw,
   ChevronDown,
-  BarChart2
+  BarChart2,
+  Briefcase
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
+import { useATS } from '../../context/ATSContext';
 import {
   mockActiveCourses,
   mockPathSteps,
@@ -31,6 +33,9 @@ const IconMap = {
 };
 
 const Progress = () => {
+  const { getApplicationsForStudent } = useATS();
+  const applications = getApplicationsForStudent();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
@@ -127,6 +132,74 @@ const Progress = () => {
                     </span>
                   </div>
                 ))}
+              </div>
+            </Card>
+
+            {/* My Applications (ATS) */}
+            <Card radius="2xl" shadow="sm" padding="large">
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1">My Applications</h2>
+                  <p className="text-sm text-gray-500">Track the real-time status of your job applications</p>
+                </div>
+                <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold px-3 py-1 rounded-full">
+                  {applications.length} Active
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-6">
+                {applications.map(app => (
+                  <div key={app.id} className="border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors bg-white shadow-sm">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
+                          <Briefcase className="w-5 h-5 text-indigo-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-sm">{app.jobTitle}</h3>
+                          <p className="text-xs font-medium text-gray-500">{app.company}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
+                        Applied {app.appliedAt}
+                      </span>
+                    </div>
+
+                    {/* Progress Timeline */}
+                    <div className="relative flex items-center justify-between px-2">
+                      <div className="absolute top-2.5 left-6 right-6 h-0.5 bg-gray-100 -z-10" />
+                      
+                      {['Applied', 'Reviewed', 'Interviewing', 'Offered'].map((stage, idx, arr) => {
+                        const stageIndex = arr.indexOf(app.status);
+                        const isCompleted = idx <= stageIndex;
+                        const isCurrent = idx === stageIndex;
+                        
+                        return (
+                          <div key={stage} className="flex flex-col items-center gap-2">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                              isCompleted 
+                                ? 'bg-emerald-500 border-emerald-500 text-white' 
+                                : 'bg-white border-gray-200'
+                            }`}>
+                              {isCompleted && <Check size={10} strokeWidth={4} />}
+                            </div>
+                            <span className={`text-[10px] font-bold ${
+                              isCurrent ? 'text-indigo-600' : isCompleted ? 'text-gray-900' : 'text-gray-400'
+                            }`}>
+                              {stage}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                
+                {applications.length === 0 && (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-sm font-medium text-gray-500">You haven't applied to any roles yet.</p>
+                  </div>
+                )}
               </div>
             </Card>
 

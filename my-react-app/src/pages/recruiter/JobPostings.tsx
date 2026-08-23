@@ -3,14 +3,19 @@ import {
   Filter, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus
 } from 'lucide-react';
 import { 
-  getPostingStats, getPostingsList, getAttentionItems 
+  getPostingStats, getAttentionItems 
 } from '../../services/postingsService';
 import { RecruiterNavbar } from '../../components/RecruiterNavbar';
+import { useState } from 'react';
+import { useJobs } from '../../context/JobsContext';
+import { CreatePostingModal } from '../../components/recruiter/CreatePostingModal';
 
 const JobPostings = () => {
   const stats = getPostingStats();
-  const postings = getPostingsList();
+  const { getJobsForRecruiter } = useJobs();
+  const postings = getJobsForRecruiter();
   const attentionItems = getAttentionItems();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#f8f9fc] font-sans text-neutral-900 flex flex-col">
@@ -18,7 +23,7 @@ const JobPostings = () => {
       <RecruiterNavbar />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-8 lg:p-12 max-w-375 w-full mx-auto">
+      <main className="flex-1 p-6 lg:p-12 max-w-7xl w-full mx-auto">
         
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
@@ -30,7 +35,7 @@ const JobPostings = () => {
             <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-gray-50 shadow-sm transition-all">
               <Download className="w-4 h-4" /> Export
             </button>
-            <button className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 border border-indigo-600 rounded-full text-white font-bold text-sm hover:bg-indigo-700 shadow-sm transition-all">
+            <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 border border-indigo-600 rounded-full text-white font-bold text-sm hover:bg-indigo-700 shadow-sm transition-all">
               <Plus className="w-4 h-4" /> Create Posting
             </button>
           </div>
@@ -78,8 +83,8 @@ const JobPostings = () => {
           <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] overflow-hidden flex flex-col">
             
             {/* Table Toolbar */}
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-white">
-              <div className="relative w-72">
+            <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white gap-4 sm:gap-0">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input 
                   type="text" 
@@ -87,7 +92,7 @@ const JobPostings = () => {
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 transition-colors"
                 />
               </div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
+              <button className="flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors">
                 <Filter className="w-4 h-4" /> Filter
               </button>
             </div>
@@ -232,6 +237,9 @@ const JobPostings = () => {
           <a href="#" className="hover:text-gray-900 transition-colors">API Documentation</a>
         </div>
       </footer>
+
+      {/* Modals */}
+      <CreatePostingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 };

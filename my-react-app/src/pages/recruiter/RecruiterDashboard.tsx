@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   Briefcase, Star, Users,
   PlusCircle, SlidersHorizontal, GraduationCap, BarChart2,
@@ -9,6 +10,8 @@ import { useRecruiter } from '../../context/RecruiterContext';
 
 const RecruiterDashboard = () => {
   const { companyName, postingStats, isLoading } = useRecruiter();
+  const [activeFilter, setActiveFilter] = useState('All Roles');
+  const filterOptions = ['All Roles', 'UX Design', 'Full Stack', 'Product Management', 'Data Science'];
 
   if (isLoading || !postingStats) {
     return (
@@ -103,12 +106,16 @@ const RecruiterDashboard = () => {
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Core Workflows</h2>
-              <div className="flex items-center gap-2">
-                <button className="px-4 py-1.5 rounded-full bg-indigo-600 text-white text-xs font-bold shadow-sm">All Roles</button>
-                <button className="px-4 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50">UX Design</button>
-                <button className="px-4 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50">Full Stack</button>
-                <button className="px-4 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50">Product Management</button>
-                <button className="px-4 py-1.5 rounded-full bg-white border border-gray-200 text-gray-600 text-xs font-bold hover:bg-gray-50">Data Science</button>
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+                {filterOptions.map(filter => (
+                  <button 
+                    key={filter}
+                    onClick={() => setActiveFilter(filter)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold shadow-sm whitespace-nowrap transition-colors ${activeFilter === filter ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -151,35 +158,47 @@ const RecruiterDashboard = () => {
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
             <div className="bg-white rounded-4xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden">
-              <div className="p-6 border-b border-gray-50 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                  <FileText className="w-5 h-5 text-indigo-600" />
+              {(activeFilter === 'All Roles' || activeFilter === 'UX Design') && (
+                <div className="p-6 border-b border-gray-50 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Sarah J.</span> updated her resume for <span className="text-indigo-600 font-bold cursor-pointer">Senior UX Designer</span></p>
+                    <p className="text-xs text-gray-400 mt-1 font-medium">2 hours ago</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Sarah J.</span> updated her resume for <span className="text-indigo-600 font-bold cursor-pointer">Senior UX Designer</span></p>
-                  <p className="text-xs text-gray-400 mt-1 font-medium">2 hours ago</p>
-                </div>
-              </div>
+              )}
               
-              <div className="p-6 border-b border-gray-50 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              {(activeFilter === 'All Roles' || activeFilter === 'Data Science' || activeFilter === 'Full Stack') && (
+                <div className="p-6 border-b border-gray-50 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Mark T.</span> completed the SQL Assessment</p>
+                    <p className="text-xs text-gray-400 mt-1 font-medium">5 hours ago • Score: 92%</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Mark T.</span> completed the SQL Assessment</p>
-                  <p className="text-xs text-gray-400 mt-1 font-medium">5 hours ago • Score: 92%</p>
-                </div>
-              </div>
+              )}
 
-              <div className="p-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                  <MessageSquare className="w-5 h-5 text-blue-500" />
+              {(activeFilter === 'All Roles' || activeFilter === 'Product Management') && (
+                <div className="p-6 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Elena R.</span> responded to the interview invite</p>
+                    <p className="text-xs text-gray-400 mt-1 font-medium">Yesterday</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-900 font-medium"><span className="font-bold">Elena R.</span> responded to the interview invite</p>
-                  <p className="text-xs text-gray-400 mt-1 font-medium">Yesterday</p>
+              )}
+              
+              {activeFilter !== 'All Roles' && activeFilter !== 'UX Design' && activeFilter !== 'Data Science' && activeFilter !== 'Full Stack' && activeFilter !== 'Product Management' && (
+                <div className="p-12 text-center">
+                  <p className="text-sm text-gray-500 font-medium">No recent activity for this role.</p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </main>
