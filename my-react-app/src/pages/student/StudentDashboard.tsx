@@ -6,21 +6,14 @@ import {
   Compass,
   Briefcase,
   LayoutDashboard,
-  Zap,
   Code2,
   User,
   Send,
 } from 'lucide-react';
 import { Navbar } from '../../components/Navbar';
 import { Card } from '../../components/Card';
-import {
-  mockStudentProfile,
-  mockPendingTask,
-  mockJourneyCards,
-  mockRecommendations,
-  mockActivity,
-  mockMentors,
-} from '../../services/studentDashboard.mock';
+import { useStudent } from '../../context/StudentContext';
+import { mockActivity } from '../../services/studentDashboard.mock';
 
 // Icon map for journey cards
 const iconMap: Record<string, React.ReactNode> = {
@@ -36,8 +29,15 @@ const recIconMap: Record<string, React.ReactNode> = {
 };
 
 const StudentDashboard = () => {
-  const profile = mockStudentProfile;
-  const task = mockPendingTask;
+  const { profile, pendingTask, journeyCards, recommendations, activity, mentors, isLoading } = useStudent();
+
+  if (isLoading || !profile || !pendingTask) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -115,11 +115,11 @@ const StudentDashboard = () => {
             <ClipboardList size={20} className="text-amber-500" />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-gray-900 text-sm">{task.title}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{task.subtitle}</p>
+            <p className="font-semibold text-gray-900 text-sm">{pendingTask.title}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{pendingTask.subtitle}</p>
           </div>
           <button className="bg-indigo-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-indigo-700 transition-colors shrink-0">
-            {task.ctaLabel}
+            {pendingTask.ctaLabel}
           </button>
         </div>
 
@@ -127,7 +127,7 @@ const StudentDashboard = () => {
         <div>
           <h2 className="text-base font-bold text-gray-900 mb-3">Your Career Journey</h2>
           <div className="grid grid-cols-4 gap-4">
-            {mockJourneyCards.map((card) => (
+            {journeyCards.map((card) => (
               <Card key={card.id} radius="2xl" shadow="sm" padding="none" className="p-5 flex flex-col gap-3">
                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
                   {iconMap[card.icon]}
@@ -155,7 +155,7 @@ const StudentDashboard = () => {
             <div>
               <h2 className="text-base font-bold text-gray-900 mb-3">Recommended for You</h2>
               <div className="grid grid-cols-2 gap-4">
-                {mockRecommendations.map((rec) => (
+                {recommendations.map((rec) => (
                   <Card key={rec.id} radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex items-center gap-4">
                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
                       {recIconMap[rec.icon]}
@@ -172,7 +172,7 @@ const StudentDashboard = () => {
             {/* Mentorship & Networking */}
             <div>
               <h2 className="text-base font-bold text-gray-900 mb-3">Mentorship &amp; Networking</h2>
-              {mockMentors.map((mentor) => (
+              {mentors.map((mentor) => (
                 <Card key={mentor.id} radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex items-center gap-4">
                   <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
                     <User size={18} className="text-indigo-500" />
@@ -193,7 +193,7 @@ const StudentDashboard = () => {
           <div>
             <h2 className="text-base font-bold text-gray-900 mb-3">Recent Activity</h2>
             <Card radius="2xl" shadow="sm" padding="none" className="px-5 py-4 flex flex-col gap-0">
-              {mockActivity.map((item, idx) => (
+              {activity.map((item, idx) => (
                 <div key={item.id} className="flex gap-4">
                   {/* Timeline dot */}
                   <div className="flex flex-col items-center">

@@ -44,7 +44,7 @@ export default function ChoosePath() {
 
   const handleContinue = () => {
     if (selectedRole) {
-      navigate(`/student/login`); // Defaulting to student login for now, would be dynamic
+      navigate(`/register?role=${selectedRole}`);
     }
   };
 
@@ -100,7 +100,7 @@ export default function ChoosePath() {
       <div className="border-t border-gray-200 bg-white px-10 py-6 w-full mt-20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <p className="text-[#6b7280] text-[0.95rem] font-medium">
-            Already have an account? <Link to="/student/login" className="text-indigo-600 hover:text-indigo-700 transition-colors ml-1 font-semibold">Sign In</Link>
+            Already have an account? <Link to="/login" className="text-indigo-600 hover:text-indigo-700 transition-colors ml-1 font-semibold">Sign In</Link>
           </p>
           <Button
             onClick={handleContinue}

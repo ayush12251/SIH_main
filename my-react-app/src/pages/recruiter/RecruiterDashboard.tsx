@@ -5,8 +5,18 @@ import {
   ChevronRight, Calendar
 } from 'lucide-react';
 import { RecruiterNavbar } from '../../components/RecruiterNavbar';
+import { useRecruiter } from '../../context/RecruiterContext';
 
 const RecruiterDashboard = () => {
+  const { companyName, postingStats, isLoading } = useRecruiter();
+
+  if (isLoading || !postingStats) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fc] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-[#f8f9fc] font-sans text-neutral-900 flex flex-col">
       {/* Navbar */}
@@ -18,7 +28,7 @@ const RecruiterDashboard = () => {
           
           {/* Header */}
           <div className="mb-10">
-            <h1 className="text-[2.2rem] font-extrabold text-gray-900 tracking-tight mb-2">Good morning, Recruit Team.</h1>
+            <h1 className="text-[2.2rem] font-extrabold text-gray-900 tracking-tight mb-2">Good morning, {companyName} Team.</h1>
             <p className="text-gray-500 text-[1.05rem] font-medium">Here's what's happening in your talent pipeline today.</p>
           </div>
 
@@ -63,7 +73,7 @@ const RecruiterDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             <div className="bg-white rounded-4xl p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative">
               <h3 className="text-gray-500 font-bold text-sm mb-6">Active Postings</h3>
-              <div className="text-[3.5rem] font-black text-gray-900 leading-none">12</div>
+              <div className="text-[3.5rem] font-black text-gray-900 leading-none">{postingStats.activePostings}</div>
               <div className="absolute top-8 right-8 w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-indigo-600" />
               </div>
@@ -72,8 +82,8 @@ const RecruiterDashboard = () => {
             <div className="bg-white rounded-4xl p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative">
               <h3 className="text-gray-500 font-bold text-sm mb-6">Total Applicants</h3>
               <div className="flex items-end justify-between">
-                <div className="text-[3.5rem] font-black text-gray-900 leading-none">145</div>
-                <div className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-md mb-2">↑ 12%</div>
+                <div className="text-[3.5rem] font-black text-gray-900 leading-none">{postingStats.totalApplicants}</div>
+                <div className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded-md mb-2">{postingStats.newMatchesChange}</div>
               </div>
               <div className="absolute top-8 right-8 w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5 text-blue-500" />
@@ -82,7 +92,7 @@ const RecruiterDashboard = () => {
 
             <div className="bg-white rounded-4xl p-8 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative">
               <h3 className="text-gray-500 font-bold text-sm mb-6">New Matches</h3>
-              <div className="text-[3.5rem] font-black text-gray-900 leading-none">8</div>
+              <div className="text-[3.5rem] font-black text-gray-900 leading-none">{postingStats.newMatches}</div>
               <div className="absolute top-8 right-8 w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
                 <Star className="w-5 h-5 text-orange-500" />
               </div>

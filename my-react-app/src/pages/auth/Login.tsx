@@ -3,9 +3,29 @@ import rocketImg from '../../assets/rocket.png';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { Card } from '../../components/Card';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from 'react';
 
-const StudentLogin = () => {
+const Login = () => {
+  const navigate = useNavigate();
+  const { login, user } = useAuth();
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'student') navigate('/student/dashboard');
+      else if (user.role === 'industry') navigate('/recruiter/dashboard');
+      else navigate('/');
+    }
+  }, [user, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const role = email.toLowerCase().includes('industry') || email.toLowerCase().includes('recruiter') ? 'industry' : 'student';
+    await login(email || 'demo@internix.com', role);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] font-sans text-neutral-900 relative overflow-hidden">
       
@@ -20,7 +40,7 @@ const StudentLogin = () => {
             </h1>
             <p className="text-[1.1rem] leading-[1.6] text-indigo-100 font-medium tracking-wide">
               Your next big opportunity is waiting.<br />
-              Connect with top employers and propel<br />
+              Connect, collaborate, and propel<br />
               your career forward.
             </p>
           </div>
@@ -39,12 +59,14 @@ const StudentLogin = () => {
             <h2 className="text-[1.75rem] font-bold text-gray-900 mb-2 tracking-tight">Login</h2>
             <p className="text-gray-500 mb-10 text-[0.95rem]">Access your Internix account.</p>
 
-            <form onSubmit={(e) => e.preventDefault()}>
+            <form onSubmit={handleLogin}>
               <div className="mb-6">
                 <Input 
                   label="Email Address" 
                   type="email" 
                   placeholder="" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="mb-0 [&>div>label]:text-[#4b5563] [&>div>label]:text-[0.7rem] [&>div>label]:uppercase [&>div>label]:tracking-wider [&>div>label]:font-bold [&>input]:bg-[#f4f5f7] [&>input]:py-3.5 [&>input]:rounded-xl [&>input]:text-sm"
                 />
               </div>
@@ -81,35 +103,13 @@ const StudentLogin = () => {
             </Button>
 
             <p className="text-center mt-10 text-[0.9rem] text-gray-500 font-medium">
-              Don't have an account? <Link to="/register" className="text-[#4c42e6] font-bold hover:underline">Sign Up</Link>
+              Don't have an account? <Link to="/choose-path" className="text-[#4c42e6] font-bold hover:underline">Sign Up</Link>
             </p>
           </Card>
         </div>
       </main>
-
-      {/* Footer / Features Section */}
-      <footer className="absolute bottom-6 left-12 flex gap-8 z-0">
-        <div className="flex items-center gap-2">
-          <div className="bg-[#059669] rounded-full w-4 h-4 flex items-center justify-center">
-             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </div>
-          <span className="text-[0.75rem] text-gray-400 font-medium tracking-wide">Skill Extraction</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="bg-[#059669] rounded-full w-4 h-4 flex items-center justify-center">
-             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </div>
-          <span className="text-[0.75rem] text-gray-400 font-medium tracking-wide">Experience Parsing</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="bg-[#059669] rounded-full w-4 h-4 flex items-center justify-center">
-             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </div>
-          <span className="text-[0.75rem] text-gray-400 font-medium tracking-wide">Education Matching</span>
-        </div>
-      </footer>
     </div>
   );
 };
 
-export default StudentLogin;
+export default Login;
